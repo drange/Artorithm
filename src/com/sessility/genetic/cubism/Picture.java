@@ -22,7 +22,7 @@ public class Picture implements Phenotype<Picture> {
   private final static Random RANDOM = new Random();
   private final List<Circle> circles;
   private BufferedImage image;
-  private int fitness = Integer.MIN_VALUE;
+  private double fitness = Double.MIN_VALUE;
 
   public Picture(List<Circle> circles) {
     this.circles = new ArrayList<>(circles.size());
@@ -38,6 +38,9 @@ public class Picture implements Phenotype<Picture> {
   }
 
   private void initialize() {
+
+    // TODO should probably remove completely hidden circles
+
     image = new BufferedImage(Main.WIDTH, Main.HEIGHT, BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();
 
@@ -46,21 +49,28 @@ public class Picture implements Phenotype<Picture> {
 
     for (Circle c : circles) {
       g.setColor(c.getColor());
-      g.fillOval(c.getX(), c.getY(), c.getRadius(), c.getRadius());
+      drawCircle(g, c.getX(), c.getY(), c.getRadius());
     }
     doComputeFitness();
   }
 
+  private void drawCircle(Graphics g, int x, int y, int radius) {
+    g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+  }
+
   private void doComputeFitness() {
-    int f = 0;
+    long f = 0;
     for (int x = 0; x < Main.WIDTH; x += 3) {
       for (int y = 0; y < Main.HEIGHT; y += 3) {
         Color here = new Color(image.getRGB(x, y));
         Color there = new Color(Main.SOURCE_IMAGE.getRGB(x, y));
-        f -= Math.round(Math.log(NamedColor.diff(here, there)));
+        // f -= Math.round(Math.log(NamedColor.diff(here, there)));
+        double diff = NamedColor.diff(here, there);
+        // System.out.println("Diff: " + diff);
+        f -= Math.round(diff);
       }
     }
-    fitness = f - (5 * circles.size());
+    fitness = f - (10 * circles.size());
   }
 
   public int size() {
@@ -69,11 +79,77 @@ public class Picture implements Phenotype<Picture> {
 
   @Override
   public int compareTo(Phenotype<Picture> o) {
-    return o.fitness() - fitness();
+    return -Double.compare(fitness, o.fitness());
   }
 
   @Override
   public Phenotype<Picture> crossover(Phenotype<Picture> other) {
+    int c = RANDOM.nextInt(3);
+    switch (c) {
+    case 0:
+      return braid(other);
+    case 1:
+      return leftRight(other);
+    case 2:
+      return upDown(other);
+    default:
+      return upDown(other);
+    }
+  }
+
+  /**
+   * Combines the upper half of the first picture with the lower half of the
+   * other
+   * 
+   * @param other
+   * @return
+   */
+  private Phenotype<Picture> upDown(Phenotype<Picture> other) {
+    Picture o = (Picture) other;
+    ArrayList<Circle> newCircles = new ArrayList<>(circles.size() + o.circles.size());
+    for (int i = 0; i < circles.size(); i++) {
+      Circle c = circles.get(i);
+      if (c.getY() <= Main.HEIGHT / 2)
+        newCircles.add(circles.get(i));
+    }
+    for (int i = 0; i < o.circles.size(); i++) {
+      Circle c = o.circles.get(i);
+      if (c.getY() >= Main.HEIGHT / 2)
+        newCircles.add(c);
+    }
+    return new Picture(newCircles);
+  }
+
+  /**
+   * Combines the left half of the first picture with the right half of the
+   * other
+   * 
+   * @param other
+   * @return
+   */
+  private Phenotype<Picture> leftRight(Phenotype<Picture> other) {
+    Picture o = (Picture) other;
+    ArrayList<Circle> newCircles = new ArrayList<>(circles.size() + o.circles.size());
+    for (int i = 0; i < circles.size(); i++) {
+      Circle c = circles.get(i);
+      if (c.getX() <= Main.WIDTH / 2)
+        newCircles.add(circles.get(i));
+    }
+    for (int i = 0; i < o.circles.size(); i++) {
+      Circle c = o.circles.get(i);
+      if (c.getX() >= Main.WIDTH / 2)
+        newCircles.add(c);
+    }
+    return new Picture(newCircles);
+  }
+
+  /**
+   * Takes every other circle from the two pictures and braids them into one.
+   * 
+   * @param other
+   * @return
+   */
+  private Phenotype<Picture> braid(Phenotype<Picture> other) {
     Picture o = (Picture) other;
     ArrayList<Circle> newCircles = new ArrayList<>(circles.size() + o.circles.size());
     for (int i = 0; i < Math.min(circles.size(), o.circles.size()); i++) {
@@ -83,35 +159,47 @@ public class Picture implements Phenotype<Picture> {
         newCircles.add(o.circles.get(i));
       }
     }
-
     return new Picture(newCircles);
   }
 
   @Override
-  public int fitness() {
+  public double fitness() {
     return fitness;
   }
 
   @Override
   public Phenotype<Picture> mutate() {
     Picture clone = clone();
+    if (clone.circles.isEmpty()) {
+      mutateAdd(clone);
+      clone.initialize();
+      return clone;
+    }
 
-    int choice = RANDOM.nextInt(6);
+    // a slightly larger chance for removing a circle
+    int choice = RANDOM.nextInt(7);
     switch (choice) {
     case 0:
       mutateRise(clone);
+      break;
     case 1:
       mutateRemove(clone);
+      break;
     case 2:
       mutateAdd(clone);
+      break;
     case 3:
       mutateColor(clone);
+      break;
     case 4:
       mutateRadius(clone);
+      break;
     case 5:
       mutateMove(clone);
+      break;
     default:
-      mutateAdd(clone);
+      mutateRemove(clone);
+      break;
     }
     clone.initialize();
     return clone;
@@ -122,7 +210,11 @@ public class Picture implements Phenotype<Picture> {
    * 
    * @param clone
    */
-  private void mutateAdd(Picture clone) {
+  private static void mutateAdd(Picture clone) {
+    if (clone.circles.isEmpty()) {
+      clone.circles.add(PictureGenerator.randomCircle());
+      return;
+    }
     int index = RANDOM.nextInt(clone.circles.size());
     clone.circles.add(index, PictureGenerator.randomCircle());
   }
@@ -153,7 +245,7 @@ public class Picture implements Phenotype<Picture> {
    * 
    * @param clone
    */
-  private void mutateRise(Picture clone) {
+  private static void mutateRise(Picture clone) {
     if (clone.circles.size() >= 2) {
       int index = RANDOM.nextInt(clone.circles.size() - 1);
       Circle c = clone.circles.remove(index);
@@ -162,7 +254,7 @@ public class Picture implements Phenotype<Picture> {
     }
   }
 
-  private void mutateColor(Picture clone) {
+  private static void mutateColor(Picture clone) {
     int index = RANDOM.nextInt(clone.circles.size());
     Circle c = clone.circles.remove(index);
     // String col = c.getColorName();
@@ -172,7 +264,7 @@ public class Picture implements Phenotype<Picture> {
     // n.getColorName());
   }
 
-  private void mutateMove(Picture clone) {
+  private static void mutateMove(Picture clone) {
     int index = RANDOM.nextInt(clone.circles.size());
     Circle c = clone.circles.remove(index);
     clone.circles.add(index, PictureGenerator.randomMove(c));
@@ -185,12 +277,25 @@ public class Picture implements Phenotype<Picture> {
 
   @Override
   public String toString() {
-    return "Fitness: " + fitness() + " " + circles;
+    return "Picture [circles=" + circles + ", fitness=" + fitness + "]";
+  }
+
+  public String toXML() {
+    String svg = "<?xml version=\"1.0\"?>\n<svg viewBox=\"0 0 " + Main.WIDTH + " " + Main.HEIGHT
+        + "\" version=\"1.1\"  xmlns=\"http://www.w3.org/2000/svg\">";
+
+    // background color
+    svg += "\n\t<circle r=\"400\" style=\"fill:rgb(255, 255, 255)\" />";
+
+    for (Circle c : circles)
+      svg += "\n\t" + c.toXML();
+    svg += "\n</svg>";
+    return "Fitness: " + fitness() + "\n" + svg;
   }
 
   @Override
   public int hashCode() {
-    return fitness;
+    return Double.hashCode(fitness);
   }
 
   @Override

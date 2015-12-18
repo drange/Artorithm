@@ -60,7 +60,7 @@ public class GeneticAlgorithm<T> {
     while (iterations < maxIterations && currentBestFitness < fitnessThreshold) {
       iterations++;
 
-      if (pool.size() > 10 * 1000) {
+      if (pool.size() > 4.5 * 1000) {
         sanitize();
       }
 
@@ -107,12 +107,6 @@ public class GeneticAlgorithm<T> {
       pool.clear();
       pool.addAll(hs);
       Collections.sort(pool);
-
-      // System.out.print("Pool size: " + pool.size() + "\tfitness:");
-      // for (int i = 0; i < 10; i++) {
-      // System.out.print("\n\t" + pool.get(i).fitness() + "\t" + pool.get(i));
-      // }
-      // System.out.println();
     }
   }
 
@@ -126,7 +120,7 @@ public class GeneticAlgorithm<T> {
       oldPool.addAll(set);
       Collections.sort(oldPool);
       pool.clear();
-      for (int i = 0; i < Math.min(1000, oldPool.size()); i++) {
+      for (int i = 0; i < Math.min(2 * 1000, oldPool.size()); i++) {
         pool.add(oldPool.get(i));
       }
       for (int i = 0; i < 100; i++) {
@@ -136,9 +130,49 @@ public class GeneticAlgorithm<T> {
       }
       Collections.sort(pool);
     }
-    System.out.println("done");
+    System.out.println("done.  " + pool.size() + " genes, " + statString());
 
     System.gc();
+  }
+
+  public String statString() {
+    double sum = 0;
+    double max = Integer.MIN_VALUE;
+    double min = Integer.MAX_VALUE;
+    double median = 0;
+    int n = 0;
+    double[] fs = new double[n];
+    synchronized (pool) {
+      n = pool.size();
+      fs = new double[n];
+      for (int i = 0; i < n; i++) {
+        double f = pool.get(i).fitness();
+        fs[i] = f;
+        sum += f;
+        max = Math.max(max, f);
+        min = Math.min(min, f);
+        if (i == fs.length / 2)
+          median = f;
+      }
+    }
+
+    double diff = 0;
+    for (int i = 0; i < n; i++) {
+      diff += (fs[i] - median) * (fs[i] - median);
+    }
+    // System.out.print("\tstddev\t" + ((double) diff) / n + "\t");
+    // System.out.print(((double) diff) / n + "\t");
+    // System.out.println(Math.sqrt(((double) diff) / n));
+
+    double stddev = Math.sqrt(diff / n);
+
+    double mean = sum / n;
+    String s = "min:" + Math.round(min);
+    s += ", max:" + Math.round(max);
+    s += ", mean:" + Math.round(mean);
+    s += ", median:" + Math.round(median);
+    s += ", stddev:" + Math.round(stddev);
+    return s;
   }
 
   public Phenotype<T> getSkewedRandom() {

@@ -1,7 +1,7 @@
 package com.sessility.genetic;
 
 public interface Phenotype<T> extends Comparable<Phenotype<T>> {
-  int fitness();
+  double fitness();
 
   Phenotype<T> mutate();
 

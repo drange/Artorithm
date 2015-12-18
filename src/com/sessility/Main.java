@@ -46,18 +46,23 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel p = new JPanel();
         frame.add(p);
+        int counter = 0;
         while (true) {
           try {
-            sleep(2 * 1000);
+            sleep(counter * 1000);
+            counter++;
             Graphics g = p.getGraphics();
             ArrayList<Phenotype<Picture>> topten = ga.getTopTen();
             for (int i = 0; i < Math.min(5, topten.size()); i++) {
               Picture pic = (Picture) topten.get(i);
 
               g.drawImage(pic.getImage(), 0, i * HEIGHT, null);
-              if (i == 0)
-                System.out.println("Drawing best: " + pic);
-              else {
+              if (i == 0) {
+                System.out.println(counter + "\tDrawing best: " + pic);
+                if (counter % 10 == 0 || counter < 20) {
+                  System.out.println(pic.toXML());
+                }
+              } else {
                 g.setColor(Color.black);
                 g.drawLine(0, i * HEIGHT - 1, WIDTH, i * HEIGHT - 1);
               }

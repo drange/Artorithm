@@ -92,8 +92,14 @@ public class Circle {
     return true;
   }
 
+  public String toXML() {
+    return "<circle cx=\"" + x + "\" cy=\"" + y + "\" r=\"" + r + "\" style=\"fill:" + c + "\" />";
+
+  }
+
   @Override
   public String toString() {
-    return x + "," + y + " (" + c + ")";
+    return "Circle [x=" + x + ", y=" + y + ", r=" + r + ", c=" + c + "]";
   }
+
 }
