@@ -46,9 +46,14 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel p = new JPanel();
         frame.add(p);
+
+        long prevTimeOfImprovement = System.currentTimeMillis();
+        double bestFitness = Long.MIN_VALUE;
+
         int counter = 0;
         while (true) {
           try {
+            long now = System.currentTimeMillis();
             sleep(counter * 1000);
             counter++;
             Graphics g = p.getGraphics();
@@ -59,14 +64,29 @@ public class Main {
               g.drawImage(pic.getImage(), 0, i * HEIGHT, null);
               if (i == 0) {
                 System.out.println(counter + "\tDrawing best: " + pic);
-                if (counter % 10 == 0 || counter < 20) {
+                if (counter % 10 == 0) {
                   System.out.println(pic.toXML());
+                  System.out.println(pic.fitness());
+                  // System.out.println(pic.history);
+
                 }
+
+                double f = pic.fitness();
+                if (f > bestFitness) {
+                  System.out.println("New best fitness: " + f);
+                  bestFitness = f;
+                  prevTimeOfImprovement = now;
+                } else {
+                  System.out.println("No improvement in " + Util.getDurationBreakdown(now - prevTimeOfImprovement));
+                }
+
               } else {
                 g.setColor(Color.black);
                 g.drawLine(0, i * HEIGHT - 1, WIDTH, i * HEIGHT - 1);
+                System.out.print(" " + pic.fitness());
               }
             }
+            System.out.println();
 
           } catch (InterruptedException e) {
             e.printStackTrace();

@@ -12,6 +12,27 @@ public class NamedColor {
     c = new Color(r, g, b);
   }
 
+  public NamedColor addHue(float epsilon) {
+    float[] hsb = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
+    float h = Math.max(0, Math.min(1, hsb[0] + epsilon));
+    Color nc = new Color(Color.HSBtoRGB(h, hsb[1], hsb[2]));
+    return new NamedColor("Hue**", nc.getRed(), nc.getGreen(), nc.getBlue());
+  }
+
+  public NamedColor addSat(float epsilon) {
+    float[] hsb = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
+    float s = Math.max(0, Math.min(1, hsb[1] + epsilon));
+    Color nc = new Color(Color.HSBtoRGB(hsb[0], s, hsb[2]));
+    return new NamedColor("Sat**", nc.getRed(), nc.getGreen(), nc.getBlue());
+  }
+
+  public NamedColor addBri(float epsilon) {
+    float[] hsb = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
+    float b = Math.max(0, Math.min(1, hsb[2] + epsilon));
+    Color nc = new Color(Color.HSBtoRGB(hsb[0], hsb[1], b));
+    return new NamedColor("Sat**", nc.getRed(), nc.getGreen(), nc.getBlue());
+  }
+
   public static double diff(Color c1, Color c2) {
     double x = 0;
 

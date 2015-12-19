@@ -24,6 +24,8 @@ public class Picture implements Phenotype<Picture> {
   private BufferedImage image;
   private double fitness = Double.MIN_VALUE;
 
+  // public String history = "";
+
   public Picture(List<Circle> circles) {
     this.circles = new ArrayList<>(circles.size());
     for (Circle c : circles) {
@@ -70,6 +72,8 @@ public class Picture implements Phenotype<Picture> {
         f -= Math.round(diff);
       }
     }
+    // how much should we penalize for many circles?
+    // we could consider a super-linear penalty
     fitness = f - (10 * circles.size());
   }
 
@@ -117,7 +121,9 @@ public class Picture implements Phenotype<Picture> {
       if (c.getY() >= Main.HEIGHT / 2)
         newCircles.add(c);
     }
-    return new Picture(newCircles);
+    Picture p = new Picture(newCircles);
+    // p.history = "(updown) " + history;
+    return p;
   }
 
   /**
@@ -140,7 +146,9 @@ public class Picture implements Phenotype<Picture> {
       if (c.getX() >= Main.WIDTH / 2)
         newCircles.add(c);
     }
-    return new Picture(newCircles);
+    Picture p = new Picture(newCircles);
+    // p.history = "(leftright) " + history;
+    return p;
   }
 
   /**
@@ -159,7 +167,9 @@ public class Picture implements Phenotype<Picture> {
         newCircles.add(o.circles.get(i));
       }
     }
-    return new Picture(newCircles);
+    Picture p = new Picture(newCircles);
+    // p.history = "(braided) " + history;
+    return p;
   }
 
   @Override
@@ -177,7 +187,7 @@ public class Picture implements Phenotype<Picture> {
     }
 
     // a slightly larger chance for removing a circle
-    int choice = RANDOM.nextInt(7);
+    int choice = RANDOM.nextInt(10);
     switch (choice) {
     case 0:
       mutateRise(clone);
@@ -196,6 +206,15 @@ public class Picture implements Phenotype<Picture> {
       break;
     case 5:
       mutateMove(clone);
+      break;
+    case 6:
+      mutateBri(clone);
+      break;
+    case 7:
+      mutateSat(clone);
+      break;
+    case 8:
+      mutateHue(clone);
       break;
     default:
       mutateRemove(clone);
@@ -232,12 +251,16 @@ public class Picture implements Phenotype<Picture> {
     }
     int index = RANDOM.nextInt(clone.circles.size());
     clone.circles.remove(index);
+
+    // clone.history = "(remove " + index + ") " + clone.history;
   }
 
   private void mutateRadius(Picture clone) {
     int index = RANDOM.nextInt(clone.circles.size());
     Circle c = clone.circles.remove(index);
     clone.circles.add(index, PictureGenerator.randomRadius(c));
+
+    // clone.history = "(radius " + index + ") " + clone.history;
   }
 
   /**
@@ -250,8 +273,59 @@ public class Picture implements Phenotype<Picture> {
       int index = RANDOM.nextInt(clone.circles.size() - 1);
       Circle c = clone.circles.remove(index);
       clone.circles.add(c);
-      // System.out.println("rise " + index);
+      // clone.history = "(rise " + index + ") " + clone.history;
     }
+  }
+
+  private static void mutateBri(Picture clone) {
+    int index = RANDOM.nextInt(clone.circles.size());
+    Circle c = clone.circles.remove(index);
+
+    NamedColor nc = c.getNamedColor();
+
+    NamedColor nnc = nc;
+    if (RANDOM.nextBoolean()) {
+      nnc = nc.addBri(0.1f);
+    } else {
+      nnc = nc.addBri(-0.1f);
+    }
+    Circle n = c.withColor(nnc);
+    clone.circles.add(index, n);
+    // clone.history = "(bri " + index + ") " + clone.history;
+  }
+
+  private static void mutateSat(Picture clone) {
+    int index = RANDOM.nextInt(clone.circles.size());
+    Circle c = clone.circles.remove(index);
+
+    NamedColor nc = c.getNamedColor();
+
+    NamedColor nnc = nc;
+    if (RANDOM.nextBoolean()) {
+      nnc = nc.addSat(0.1f);
+    } else {
+      nnc = nc.addSat(-0.1f);
+    }
+    Circle n = c.withColor(nnc);
+    clone.circles.add(index, n);
+    // clone.history = "(sat " + index + ") " + clone.history;
+  }
+
+  private static void mutateHue(Picture clone) {
+    int index = RANDOM.nextInt(clone.circles.size());
+    Circle c = clone.circles.remove(index);
+
+    NamedColor nc = c.getNamedColor();
+
+    NamedColor nnc = nc;
+    if (RANDOM.nextBoolean()) {
+      nnc = nc.addHue(0.1f);
+    } else {
+      nnc = nc.addHue(-0.1f);
+    }
+    Circle n = c.withColor(nnc);
+    clone.circles.add(index, n);
+    // clone.history = "(hue " + index + ") " + clone.history;
   }
 
   private static void mutateColor(Picture clone) {
@@ -262,16 +336,20 @@ public class Picture implements Phenotype<Picture> {
     clone.circles.add(index, n);
     // System.out.println("Swap " + n + " from " + col + " to " +
     // n.getColorName());
+    // clone.history = "(color " + index + ") " + clone.history;
   }
 
   private static void mutateMove(Picture clone) {
     int index = RANDOM.nextInt(clone.circles.size());
     Circle c = clone.circles.remove(index);
     clone.circles.add(index, PictureGenerator.randomMove(c));
+
+    // clone.history = "(move " + index + ") " + clone.history;
   }
 
   public final Picture clone() {
     Picture p = new Picture(circles);
+    // p.history = history;
     return p;
   }
 

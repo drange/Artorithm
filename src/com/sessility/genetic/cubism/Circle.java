@@ -22,6 +22,10 @@ public class Circle {
     }
   }
 
+  public NamedColor getNamedColor() {
+    return c;
+  }
+
   public Circle withColor(NamedColor c) {
     return new Circle(x, y, r, c);
   }
