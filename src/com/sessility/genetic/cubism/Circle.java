@@ -26,6 +26,28 @@ public class Circle {
     return c;
   }
 
+  /**
+   * Returns true if and only if this completely covers back, i.e. dist(this,
+   * back) + rad(back) <= rad(this)
+   * 
+   * @param back
+   *          the object to check if is behind this
+   * @return true if and only if this completely covers back
+   */
+  public boolean isHiding(Circle back) {
+    double frontRad = getRadius();
+    double backRad = back.getRadius();
+    double centerDist = dist(getX(), getY(), back.getX(), back.getY());
+
+    return centerDist + backRad <= frontRad;
+  }
+
+  public static double dist(int x1, int y1, int x2, int y2) {
+    double xp = Math.pow(x1 - x2, 2);
+    double yp = Math.pow(y1 - y2, 2);
+    return Math.sqrt(xp + yp);
+  }
+
   public Circle withColor(NamedColor c) {
     return new Circle(x, y, r, c);
   }
