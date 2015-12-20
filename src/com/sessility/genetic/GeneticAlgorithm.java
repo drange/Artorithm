@@ -60,7 +60,7 @@ public class GeneticAlgorithm<T> {
     while (iterations < maxIterations && currentBestFitness < fitnessThreshold) {
       iterations++;
 
-      if (pool.size() > 4.5 * 1000) {
+      if (pool.size() > 3 * 1000) {
         sanitize();
       }
 
@@ -120,7 +120,7 @@ public class GeneticAlgorithm<T> {
       oldPool.addAll(set);
       Collections.sort(oldPool);
       pool.clear();
-      for (int i = 0; i < Math.min(2 * 1000, oldPool.size()); i++) {
+      for (int i = 0; i < Math.min(1 * 1000, oldPool.size()); i++) {
         pool.add(oldPool.get(i));
       }
       for (int i = 0; i < 100; i++) {

@@ -41,18 +41,18 @@ public class Picture implements Phenotype<Picture> {
 
   private void initialize() {
 
-    // deletes circles being hidden behind other circles
-    for (int i = 1; i < circles.size(); i++) {
-      Circle back = circles.get(i);
-      for (int j = 0; j < i; j++) {
-        Circle front = circles.get(j);
-        if (front.isHiding(back)) {
-          circles.remove(j);
-          j--;
-          i--;// go back one, since we delete one
-        }
-      }
-    }
+//    // deletes circles being hidden behind other circles
+//    for (int i = 1; i < circles.size(); i++) {
+//      Circle back = circles.get(i);
+//      for (int j = 0; j < i; j++) {
+//        Circle front = circles.get(j);
+//        if (front.isHiding(back)) {
+//          circles.remove(j);
+//          j--;
+//          i--;// go back one, since we delete one
+//        }
+//      }
+//    }
 
     image = new BufferedImage(Main.WIDTH, Main.HEIGHT, BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();
