@@ -43,7 +43,7 @@ public class NamedColor {
     float[] hsb = Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), null);
     float b = Math.max(0, Math.min(1, hsb[2] + epsilon));
     Color nc = new Color(Color.HSBtoRGB(hsb[0], hsb[1], b));
-    return new NamedColor(addToName("s"), nc.getRed(), nc.getGreen(), nc.getBlue());
+    return new NamedColor(addToName("b"), nc.getRed(), nc.getGreen(), nc.getBlue());
   }
 
   public static double diff(Color c1, Color c2) {
