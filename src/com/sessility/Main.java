@@ -33,7 +33,7 @@ public class Main {
   public static void main(String[] args) throws Exception {
 
     try {
-      SOURCE_IMAGE = ImageIO.read(new File("rotterdam.png"));
+      SOURCE_IMAGE = ImageIO.read(new File("skrik-s.png"));
       HEIGHT = SOURCE_IMAGE.getHeight();
       WIDTH = SOURCE_IMAGE.getWidth();
     } catch (IOException e) {

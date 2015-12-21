@@ -119,7 +119,14 @@ public class Circle {
   }
 
   public String toXML() {
-    return "<circle cx=\"" + x + "\" cy=\"" + y + "\" r=\"" + r + "\" style=\"fill:" + c + "\" />";
+    String xmlx = "cx=\"" + x + "\"";
+    String xmly = "cy=\"" + y + "\"";
+    String xmlr = "r=\"" + r + "\"";
+    String xmlf = "style=\"fill:" + c + "\"";
+
+    String desc = "<desc id=\"" + hashCode() + "\">" + c.getName() + "</desc>";
+
+    return "<circle " + xmlx + " " + xmly + " " + xmlr + " " + xmlf + ">" + desc + "</circle>";
 
   }
 

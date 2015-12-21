@@ -12,6 +12,8 @@ public class GeneticAlgorithm<T> {
   private final Random random;
 
   public final static int INITIAL_SIZE = 100;
+  public final static int POOL_MIN_SIZE = 1 * 1000;
+  public final static int POOL_MAX_SIZE = 3 * 1000;
 
   private int fitnessThreshold;
   private int maxIterations;
@@ -60,7 +62,7 @@ public class GeneticAlgorithm<T> {
     while (iterations < maxIterations && currentBestFitness < fitnessThreshold) {
       iterations++;
 
-      if (pool.size() > 3 * 1000) {
+      if (pool.size() > POOL_MAX_SIZE) {
         sanitize();
       }
 
@@ -120,19 +122,19 @@ public class GeneticAlgorithm<T> {
       oldPool.addAll(set);
       Collections.sort(oldPool);
       pool.clear();
-      for (int i = 0; i < Math.min(1 * 1000, oldPool.size()); i++) {
+      for (int i = 0; i < Math.min(POOL_MIN_SIZE, oldPool.size()); i++) {
         pool.add(oldPool.get(i));
       }
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < INITIAL_SIZE; i++) {
         // System.out.println("sanitize " + pool.size());
         pool.add(phenotypeFactory.generate());
         // System.gc();
       }
       Collections.sort(pool);
     }
-    System.out.println("done.  " + pool.size() + " genes, " + statString());
-
     System.gc();
+
+    System.out.println("done.  " + pool.size() + " genes, " + statString());
   }
 
   public String statString() {

@@ -41,18 +41,18 @@ public class Picture implements Phenotype<Picture> {
 
   private void initialize() {
 
-//    // deletes circles being hidden behind other circles
-//    for (int i = 1; i < circles.size(); i++) {
-//      Circle back = circles.get(i);
-//      for (int j = 0; j < i; j++) {
-//        Circle front = circles.get(j);
-//        if (front.isHiding(back)) {
-//          circles.remove(j);
-//          j--;
-//          i--;// go back one, since we delete one
-//        }
-//      }
-//    }
+    // TODO: fix! deletes circles being hidden behind other circles
+    for (int i = 1; i < circles.size(); i++) {
+      Circle front = circles.get(i);
+      for (int j = 0; j < i; j++) {
+        Circle back = circles.get(j);
+        if (front.isHiding(back)) {
+          circles.remove(j);
+          j--;
+          i--; // go back one, since we delete one
+        }
+      }
+    }
 
     image = new BufferedImage(Main.WIDTH, Main.HEIGHT, BufferedImage.TYPE_INT_RGB);
     Graphics g = image.getGraphics();
@@ -73,8 +73,8 @@ public class Picture implements Phenotype<Picture> {
 
   private void doComputeFitness() {
     long f = 0;
-    for (int x = 0; x < Main.WIDTH; x += 3) {
-      for (int y = 0; y < Main.HEIGHT; y += 3) {
+    for (int x = 0; x < Main.WIDTH; x += 1) {
+      for (int y = 0; y < Main.HEIGHT; y += 1) {
         Color here = new Color(image.getRGB(x, y));
         Color there = new Color(Main.SOURCE_IMAGE.getRGB(x, y));
         // f -= Math.round(Math.log(NamedColor.diff(here, there)));
@@ -83,9 +83,8 @@ public class Picture implements Phenotype<Picture> {
         f -= Math.round(diff);
       }
     }
-    // how much should we penalize for many circles?
-    // we could consider a )super-linear penalty
-    fitness = f - (10 * circles.size());
+    // how much should we penalize for many circles? n²
+    fitness = f - (circles.size() * circles.size());
   }
 
   public int size() {
@@ -370,16 +369,20 @@ public class Picture implements Phenotype<Picture> {
   }
 
   public String toXML() {
-    String svg = "<?xml version=\"1.0\"?>\n<svg viewBox=\"0 0 " + Main.WIDTH + " " + Main.HEIGHT
-        + "\" version=\"1.1\"  xmlns=\"http://www.w3.org/2000/svg\">";
+    String svg = "<?xml version=\"1.0\"?>\n<!-- Generated art by Artorithm -->\n<svg viewBox=\"0 0 " + Main.WIDTH + " "
+        + Main.HEIGHT + "\" version=\"1.1\"  xmlns=\"http://www.w3.org/2000/svg\">";
+
+    svg += "\n\t<desc id=\"fitness\">" + fitness() + "</desc>";
 
     // background color
-    svg += "\n\t<circle r=\"400\" style=\"fill:rgb(255, 255, 255)\" />";
+    svg += "<!-- background color -->";
+    svg += "\n\t<circle r=\"400\" style=\"fill:rgb(255, 255, 255)\"><desc id=\"background\">background</desc></circle>";
 
+    svg += "<!-- start of circles -->";
     for (Circle c : circles)
       svg += "\n\t" + c.toXML();
     svg += "\n</svg>";
-    return "Fitness: " + fitness() + "\n" + svg;
+    return svg;
   }
 
   @Override
