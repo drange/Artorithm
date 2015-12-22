@@ -12,6 +12,7 @@ public class GeneticAlgorithm<T> {
   private final Random random;
 
   public final static int INITIAL_SIZE = 100;
+  public final static int COOL_DOWN_TIME = 100;
   public final static int POOL_MIN_SIZE = 1 * 1000;
   public final static int POOL_MAX_SIZE = 3 * 1000;
 
@@ -58,7 +59,8 @@ public class GeneticAlgorithm<T> {
     }
 
     int iterations = 0;
-    int currentBestFitness = Integer.MIN_VALUE;
+    double currentBestFitness = Long.MIN_VALUE;
+    int iterationBestFitness = 0;
     while (iterations < maxIterations && currentBestFitness < fitnessThreshold) {
       iterations++;
 
@@ -68,12 +70,51 @@ public class GeneticAlgorithm<T> {
 
       ArrayList<Phenotype<T>> individuals = new ArrayList<>(10);
       synchronized (pool) {
-        individuals.add(getBest());
+        Phenotype<T> best = getBest();
+        if (best.fitness() > currentBestFitness) {
+          currentBestFitness = best.fitness();
+          iterationBestFitness = iterations;
+          individuals.add(best);
+        } else if (iterationBestFitness + COOL_DOWN_TIME < iterations) {
+          System.out.println(iterations);
+          System.out.print(COOL_DOWN_TIME + " iterations without improvement, shaking ... ");
+          shake();
+          System.out.println("done");
+          best = getBest();
+          individuals.add(best);
+          currentBestFitness = best.fitness();
+          iterationBestFitness = iterations;
+        }
         for (int i = 0; i < 9; i++) {
           individuals.add(getSkewedRandom());
         }
       }
       doIndividuals(individuals);
+    }
+  }
+
+  /**
+   * Shakes the pool. Mutates every individual, fills up with random.
+   */
+  private void shake() {
+    synchronized (pool) {
+      int size = pool.size();
+      Phenotype<T> best = getBest();
+      HashSet<Phenotype<T>> set = new HashSet<>();
+      System.out.print(" (mutating " + size + " elements ... ");
+      for (Phenotype<T> p : pool) {
+        set.add(p.mutate());
+      }
+      System.out.print("done) ");
+      set.add(best); // let's keep the best, still
+      System.out.print(" (filling ...");
+      while (set.size() < size) {
+        set.add(phenotypeFactory.generate());
+      }
+      System.out.println("done)");
+      pool.clear();
+      pool.addAll(set);
+      Collections.sort(pool);
     }
   }
 

@@ -23,6 +23,7 @@ public class Picture implements Phenotype<Picture> {
   private final List<Circle> circles;
   private BufferedImage image;
   private double fitness = Double.MIN_VALUE;
+  private int age = 0;
 
   // public String history = "";
 
@@ -133,6 +134,7 @@ public class Picture implements Phenotype<Picture> {
     }
     Picture p = new Picture(newCircles);
     // p.history = "(updown) " + history;
+    p.age = Math.max(age, o.age) + 1;
     return p;
   }
 
@@ -158,6 +160,7 @@ public class Picture implements Phenotype<Picture> {
     }
     Picture p = new Picture(newCircles);
     // p.history = "(leftright) " + history;
+    p.age = Math.max(age, o.age) + 1;
     return p;
   }
 
@@ -179,12 +182,17 @@ public class Picture implements Phenotype<Picture> {
     }
     Picture p = new Picture(newCircles);
     // p.history = "(braided) " + history;
+    p.age = Math.max(age, o.age) + 1;
     return p;
   }
 
   @Override
   public double fitness() {
     return fitness;
+  }
+
+  public int getAge() {
+    return age;
   }
 
   @Override
@@ -231,6 +239,7 @@ public class Picture implements Phenotype<Picture> {
       break;
     }
     clone.initialize();
+    clone.age = age + 1;
     return clone;
   }
 
@@ -373,12 +382,13 @@ public class Picture implements Phenotype<Picture> {
         + Main.HEIGHT + "\" version=\"1.1\"  xmlns=\"http://www.w3.org/2000/svg\">";
 
     svg += "\n\t<desc id=\"fitness\">" + fitness() + "</desc>";
+    svg += "\n\t<desc id=\"age\">" + getAge() + "</desc>";
 
     // background color
-    svg += "<!-- background color -->";
+    svg += "\n\t<!-- background color -->";
     svg += "\n\t<circle r=\"400\" style=\"fill:rgb(255, 255, 255)\"><desc id=\"background\">background</desc></circle>";
 
-    svg += "<!-- start of circles -->";
+    svg += "\n\t<!-- start of circles -->";
     for (Circle c : circles)
       svg += "\n\t" + c.toXML();
     svg += "\n</svg>";
