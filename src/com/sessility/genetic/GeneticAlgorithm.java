@@ -11,10 +11,10 @@ public class GeneticAlgorithm<T> {
 
   private final Random random;
 
-  public final static int INITIAL_SIZE = 100;
-  public final static int COOL_DOWN_TIME = 100;
-  public final static int POOL_MIN_SIZE = 1 * 1000;
-  public final static int POOL_MAX_SIZE = 3 * 1000;
+  public final static int INITIAL_SIZE = 500;
+  public final static int COOL_DOWN_TIME = 10000;
+  public final static int POOL_MIN_SIZE = 2 * 1000;
+  public final static int POOL_MAX_SIZE = 4 * 1000;
 
   private int fitnessThreshold;
   private int maxIterations;
@@ -99,22 +99,21 @@ public class GeneticAlgorithm<T> {
   private void shake() {
     synchronized (pool) {
       int size = pool.size();
-      Phenotype<T> best = getBest();
-      HashSet<Phenotype<T>> set = new HashSet<>();
+      // Phenotype<T> best = getBest();
+
       System.out.print(" (mutating " + size + " elements ... ");
-      for (Phenotype<T> p : pool) {
-        set.add(p.mutate());
+      for (int i = 0; i < size; i++) {
+        pool.set(i, pool.get(i).mutate());
       }
+      // pool.add(best); TODO: Keep best?
+      System.gc();
       System.out.print("done) ");
-      set.add(best); // let's keep the best, still
+
       System.out.print(" (filling ...");
-      while (set.size() < size) {
-        set.add(phenotypeFactory.generate());
+      while (pool.size() < POOL_MAX_SIZE / 2) {
+        pool.add(phenotypeFactory.generate());
       }
       System.out.println("done)");
-      pool.clear();
-      pool.addAll(set);
-      Collections.sort(pool);
     }
   }
 
